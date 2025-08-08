@@ -1,0 +1,41 @@
+// Für 8 Bit
+var x: int;
+x := (-5 + 256) % 256;  // Das ergibt 251
+
+
+Bit weise dings Boogie
+0
+1
+00
+01
+10
+11
+
+1011 = -5 (interpretation als zweierkomplement) oder 11 (interpretation als binärzahl)
+
+
+-5
+
+
+// Für 8 Bit i8
+var x: int;
+x := (-5 + 256) % 256;  // Das ergibt 251
+
+x hat typ i8
+havoc x;
+assume x>=0;
+assume x<256;
+
+
+In LLVM-IR: x+5
+x+5 % 256
+
+%x = -5;
+%y = 251;
+assert %x == %y;
+
+
+%and = and %x, %y
+
+var and;
+havoc and;
