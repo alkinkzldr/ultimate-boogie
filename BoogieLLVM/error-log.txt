@@ -1,0 +1,3 @@
+./ACSL-globalsBeforeDeclaration.c: clang failed
+./ACSL-shift.c: clang failed
+./fscanf.c: clang failed

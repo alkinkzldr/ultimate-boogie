@@ -1,0 +1,17 @@
+//#Safe
+// Author: heizmann@informatik.uni-freiburg.de
+// Date: 4.2.2013
+
+#include <assert.h>
+
+_Bool identity(_Bool b) {
+    return b;
+}
+
+int main() {
+    int x = 1;
+    int y = 1;
+    _Bool z = identity((x++ == 0) || (y++ == 0));
+    assert(x == 2 && y == 2);
+}
+
