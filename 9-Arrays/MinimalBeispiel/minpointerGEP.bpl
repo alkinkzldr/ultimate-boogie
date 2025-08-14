@@ -1,4 +1,6 @@
-// ultimate automizer - safe
+//nur GEP ist hier anders, cehck it out!
+//ultimate automizer - safe
+
 // ====== Pointer-Typ & Heap-Modell ======
 type $Pointer$ = { base:int, offset:int };
 
@@ -10,8 +12,6 @@ var H_mem_i32  : [$Pointer$] int;    // i32-Speicher: (Pointer) -> Wert
 
 const SIZEOF_I32 : int;
 axiom SIZEOF_I32 == 4;
-
-// p.base heißt in boogie p!base -> also immer mit ! für Felder
 
 // ====== Typisierte Speicher-Operationen (Spezifikationen) ======
 procedure read_i32(p:$Pointer$) returns (v:int);
@@ -34,66 +34,32 @@ procedure $malloc(n:int) returns (p:$Pointer$);
   ensures  H_len[p!base] == n;
   modifies H_valid, H_len;
 
-// ====== init(): store 7 an *a ======
-procedure init();
-  modifies H_mem_i32;
-
-// ====== main(): malloc(4), a := ptr, init(), load *a, assert(*a == 7) ======
+// ====== main(): malloc(8), a := p, gep +1, store 7, load, ret ======
 procedure main() returns (ret:int);
   modifies a, H_valid, H_len, H_mem_i32;
 
-// ====== Start-Wrapper ======
-procedure ULTIMATE.start();
-  modifies a, H_valid, H_len, H_mem_i32;
-
-// ====== Implementations ======
-
-implementation init()
-{
-  var p:$Pointer$;
-
-  // %0 = load ptr, ptr @a
-  p := a;
-
-  // GEP mit Index 0 -> unverändert (kein Feld-Update nötig)
-   p := { base: p!base, offset: p!offset + 0 * SIZEOF_I32 };
-
-  // store i32 7, ptr p
-  call write_i32(p, 7);
-  return;
-}
-
 implementation main() returns (ret:int)
 {
-  var p_alloc:$Pointer$;
-  var p_load :$Pointer$;
-  var val    :int;
+  var p   : $Pointer$;  // %p
+  var p1  : $Pointer$;  // %p1 = gep i32, p, 1
+  var v   : int;        // %v
 
-  // %call = call noalias ptr @malloc(4)
-  call p_alloc := $malloc(SIZEOF_I32);
+  // 1) %p = malloc(8)  -- zwei i32
+  call p := $malloc(2 * SIZEOF_I32);
 
-  // store ptr %call, ptr @a
-  a := p_alloc;
+  // 2) a = %p
+  a := p;
 
-  // call void @init()
-  call init();
+  // 3) %p1 = getelementptr i32, p, 1  -- Offset + 1 * sizeof(i32)
+  p1 := { base: p!base, offset: p!offset + 1 * SIZEOF_I32 };
 
-  // %0 = load ptr, ptr @a
-  p_load := a;
+  // 4) store i32 7, ptr %p1
+  call write_i32(p1, 7);
 
-  // %1 = load i32, ptr %0
-  call val := read_i32(p_load);
+  // 5) %v = load i32, ptr %p1
+  call v := read_i32(p1);
 
-  // %cmp = icmp eq i32 %1, 7
-  assert val == 7;
-
-  ret := 0;
-  return;
-}
-
-implementation ULTIMATE.start()
-{
-  var _ret:int;
-  call _ret := main();
+  // 6) ret i32 %v
+  ret := v;
   return;
 }
